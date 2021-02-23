@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     Lexer::Token* lexTokens = Lexer::Lexer(inputFile);
     ParserOutput* tokens = Parser::ParseTokens(lexTokens);
 
-    std::string outputFile = "asm.out";
+    std::string outputFile = inputFile + ".out";
 
     if (argv[2] != nullptr) {
         outputFile = argv[2];
