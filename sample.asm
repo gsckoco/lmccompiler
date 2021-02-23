@@ -8,3 +8,4 @@ loop:
     OUT #$7F   ; Output 127 to signify finished
     LDA #$7F
     STA $7FFF
+    HLT
