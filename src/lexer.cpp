@@ -22,13 +22,11 @@ bool isWhitespace(char c) {
 }
 
 void Lexer::ParseToken(std::string string, Token *t) {
-    //std::cout << string << "/" << std::endl;
     TokenType type;
 
     for (int i = 0; i < 8; i++) {
         Lexer::RegexPattern pattern = patterns[i];
         if (std::regex_match(string, pattern.pattern)) {
-            //std::cout << "Value:" << string << " Type:" << (int)pattern.type + 1 << std::endl;
             type = pattern.type;
             break;
         }

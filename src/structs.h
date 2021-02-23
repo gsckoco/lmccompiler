@@ -42,7 +42,8 @@ enum class TokenType {
     LabelDeclaration,
     Comment,
     Register,
-    Start
+    Start,
+    None,
 };
 
 struct Value {
