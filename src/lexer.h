@@ -48,16 +48,14 @@ namespace Lexer {
         TokenType type;
     };
 
-    struct Token {
-        TokenType type;
-        std::string value;
-        Token *nextToken = nullptr;
-    };
-
     void ParseToken(std::string string, Token *t);
     Token* ReadLine(std::string string, Token *firstToken);
     void LoadPatterns();
     Token* Lexer(std::string file);
+
+    namespace Macro {
+        Token* ParseMacro(std::string line);
+    }
 }  // namespace lexer
 
 

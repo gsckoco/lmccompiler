@@ -36,7 +36,7 @@
 namespace Parser {
     Opcode OpcodeFromName(std::string input);
     AddressingMode GetAddressingMode(TokenType type);
-    ParserOutput* ParseTokens(Lexer::Token* token);
+    ParserOutput* ParseTokens(Token* token);
 }  // namespace Parser
 
 #endif  // !PARSER_H

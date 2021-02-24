@@ -12,7 +12,11 @@ enum class Opcode : uint8_t {
     BRZ = 0x06,
     BRP = 0x07,
     OUT = 0x08,
-    OTC = 0x09
+    OTC = 0x09,
+    LDX = 0x0A,
+    LDY = 0x0B,
+    INX = 0x0C,
+    INY = 0x0D,
 };
 
 enum class AddressingMode : uint8_t {
@@ -33,22 +37,33 @@ enum class AddressingModeSize : uint8_t {
     DoubleByte
 };
 
-enum class TokenType {
+enum class TokenType : int {
     Instruction,
     Immediate,
     ZeroPage,
     Absolute,
+    XIndexed,
+    YIndexed,
     Label,
     LabelDeclaration,
     Comment,
     Register,
+    Macro,
+    MacroValue,
     Start,
     None,
+    Unknown
+};
+
+struct Token {
+    TokenType type;
+    std::string value;
+    Token *nextToken = nullptr;
 };
 
 struct Value {
     AddressingMode mode;
-    uint16_t value;
+    std::vector<uint8_t> value;
     TokenType tokenType;
 };
 
@@ -58,6 +73,7 @@ struct Instruction {
     Opcode opcode;
     Value value;
     uint16_t memoryAddress;
+    Token *token;
 };
 
 struct LabelPointer {

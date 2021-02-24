@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
 
     std::string inputFile(argv[1]);
     std::cout << "Reading from file: " << inputFile << std::endl;
-    Lexer::Token* lexTokens = Lexer::Lexer(inputFile);
+    Token* lexTokens = Lexer::Lexer(inputFile);
     ParserOutput* tokens = Parser::ParseTokens(lexTokens);
 
     std::string outputFile = inputFile + ".out";

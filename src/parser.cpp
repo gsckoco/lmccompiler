@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "utils.h"
 
 /*
 
@@ -36,40 +37,17 @@ Opcode Parser::OpcodeFromName(std::string input) {
         return Opcode::OUT;
     } else if (input == "OTC") {
         return Opcode::OTC;
+    } else if (input == "LDX") {
+        return Opcode::LDX;
+    } else if (input == "LDY") {
+        return Opcode::LDY;
+    } else if (input == "INX") {
+        return Opcode::INX;
+    } else if (input == "INY") {
+        return Opcode::INY;
     }
     return Opcode::HLT;
 }
-
-/*
-enum class TokenType {
-    Instruction,
-    Immediate,
-    ZeroPage,
-    Absolute,
-    Label,
-    LabelDeclaration,
-    Comment,
-    Start
-};
-
-if (currentToken->type == TokenType::LabelDeclaration) {
-*/
-
-/*
-
-enum class TokenType {
-    Instruction,
-    Immediate,
-    ZeroPage,
-    Absolute,
-    Label,
-    LabelDeclaration,
-    Comment,
-    Register,
-    Start
-};
-
-*/
 
 bool IsInstructionValue(TokenType type) {
     switch (type) {
@@ -77,6 +55,8 @@ bool IsInstructionValue(TokenType type) {
         case TokenType::ZeroPage:
         case TokenType::Absolute:
         case TokenType::Register:
+        case TokenType::XIndexed:
+        case TokenType::YIndexed:
             return true;
         default:
             return false;
@@ -99,8 +79,8 @@ AddressingMode Parser::GetAddressingMode(TokenType type) {
     }
 }
 
-ParserOutput* Parser::ParseTokens(Lexer::Token* token) {
-    Lexer::Token* currentToken = token;
+ParserOutput* Parser::ParseTokens(Token* token) {
+    Token* currentToken = token;
     std::string currentLabel = "";
 
     std::vector<Instruction*> instructionList;
@@ -111,35 +91,71 @@ ParserOutput* Parser::ParseTokens(Lexer::Token* token) {
             Instruction* newInstruction = new Instruction;
             newInstruction->label = currentLabel;
             newInstruction->opcode = OpcodeFromName(currentToken->value);
+            newInstruction->token = currentToken;
             if (currentToken->nextToken != nullptr) {
+                //std::cout << currentToken->value << "/" << (int)currentToken->nextToken->type << "/" << std::hex << (int)newInstruction->opcode << std::endl;
                 if (IsInstructionValue(currentToken->nextToken->type)) {
-                    newInstruction->value.mode = GetAddressingMode(currentToken->nextToken->type);
+                    AddressingMode addressMode = GetAddressingMode(currentToken->nextToken->type);
+
+                    //std::cout << currentToken->value << "/" << currentToken->nextToken->value << "/" << currentToken->nextToken->nextToken->value << std::endl;
+
+                    newInstruction->value.mode = addressMode;
+
                     std::stringstream hex2num;
                     std::smatch regResults;
                     std::regex_search(currentToken->nextToken->value, regResults, std::regex("[0-9a-fA-F]{2,}"));
+                    int v;
                     hex2num << std::hex << regResults.str();
-                    hex2num >> newInstruction->value.value;
+                    hex2num >> v;
+
+                    AddressingModeSize size = GetSizeFromAddressingMode(addressMode);
+                    if (size == AddressingModeSize::DoubleByte) {
+                        newInstruction->value.value.push_back((uint8_t)(v >> 8) & 0xFF);
+                        newInstruction->value.value.push_back((uint8_t)(v) & 0xFF);
+                    } else if (size == AddressingModeSize::SingleByte) {
+                        newInstruction->value.value.push_back((uint8_t)(v) & 0xFF);
+                    }
+                    //currentInstruction->value.value.push_back((uint8_t)(labelPointers[a]->memoryLocation >> 8) & 0xFF);
+                    //currentInstruction->value.value.push_back((uint8_t)(labelPointers[a]->memoryLocation) & 0xFF);
                 } else if (currentToken->nextToken->type == TokenType::Label) {
                     LabelPointer* pointer = new LabelPointer;
                     newInstruction->value.mode = AddressingMode::Absolute;
-                    newInstruction->labelReference = currentToken->nextToken->value;
-                    pointer->instruction = newInstruction;
-                    pointer->label = currentToken->nextToken->value;
-                    labelList.push_back(pointer);
+                    if (currentToken->nextToken->nextToken != nullptr) {
+                        if (currentToken->nextToken->nextToken->type == TokenType::XIndexed) {
+                            newInstruction->value.mode = AddressingMode::XIndexedAbsolute;
+                        } else if (currentToken->nextToken->nextToken->type == TokenType::YIndexed) {
+                            {
+                                newInstruction->value.mode = AddressingMode::YIndexedAbsolute;
+                            }
+                        }
+                        newInstruction->labelReference = currentToken->nextToken->value;
+                        pointer->instruction = newInstruction;
+                        pointer->label = currentToken->nextToken->value;
+                        labelList.push_back(pointer);
+                    }
+
+                    newInstruction->value.tokenType = currentToken->nextToken->type;
+                } else {
+                    newInstruction->value.tokenType = TokenType::None;
+                    newInstruction->value.mode = AddressingMode::Implied;
                 }
 
-                newInstruction->value.tokenType = currentToken->nextToken->type;
-            } else {
-                newInstruction->value.tokenType = TokenType::None;
-                newInstruction->value.value = 0;
-                newInstruction->value.mode = AddressingMode::Implied;
+                currentLabel = "";
+                instructionList.push_back(newInstruction);
             }
+        } else if (currentToken->type == TokenType::Macro) {
+            Instruction* newInstruction = new Instruction;
+            newInstruction->token = currentToken;
+            newInstruction->label = currentLabel;
 
-            currentLabel = "";
+            newInstruction->opcode = (Opcode)0x00;
+            newInstruction->value.mode = (AddressingMode)0x00;
+
             instructionList.push_back(newInstruction);
         } else if (currentToken->type == TokenType::LabelDeclaration) {
             std::string label = currentToken->value;
             currentLabel = label.substr(0, label.length() - 1);
+            //std::cout << label << " LABEL MADE" << std::endl;
         }
         currentToken = currentToken->nextToken;
     }

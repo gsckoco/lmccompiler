@@ -7,7 +7,6 @@
 #include "structs.h"
 
 namespace Compiler {
-    AddressingModeSize GetSizeFromAddressingMode(AddressingMode mode);
     void Compile(std::string output, ParserOutput* tokens);
 }  // namespace Compiler
 
