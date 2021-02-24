@@ -4,7 +4,7 @@
 #include <cstring>
 #include "utils.h"
 
-bool debugTokens = true;
+bool debugTokens = false;
 
 std::vector<Lexer::RegexPattern> patterns;
 
