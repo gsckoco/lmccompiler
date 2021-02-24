@@ -9,4 +9,4 @@ loop:
 done:
     HLT         ; Stop execution
 text:
-    .byte "hello world", #$0A, "Goodbye  \"world\"", #$0A ; .byte is TokenType macro, anything after a macro is passed to a seperate lexer to change how it is tokenized
+    .byte "hello world", #$0A, "Goodbye  \"world\", #$0A ; .byte is TokenType macro, anything after a macro is passed to a seperate lexer to change how it is tokenized
